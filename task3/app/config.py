@@ -1,0 +1,9 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+MODEL_NAME = "llama-3.3-70b-versatile"
+MAX_FILE_SIZE_MB = 32
+MAX_ROWS_FOR_CHARTS = 10_000

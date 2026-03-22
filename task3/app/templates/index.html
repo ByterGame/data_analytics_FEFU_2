@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Data Analytics</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Data Analytics</h1>
+            <p class="subtitle">Загрузите CSV или Excel файл для автоматического анализа с помощью ИИ</p>
+        </header>
+
+        {% if error %}
+        <div class="alert alert-error">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <div class="upload-card">
+            <form action="/result" method="post" enctype="multipart/form-data" id="uploadForm">
+                <div class="upload-area" id="dropZone">
+                    <div class="upload-icon">&#128202;</div>
+                    <p>Перетащите файл сюда или нажмите для выбора</p>
+                    <p class="upload-hint">Поддерживаемые форматы: CSV, XLSX (до 10 MB)</p>
+                    <input type="file" name="file" id="fileInput" accept=".csv,.xlsx,.xls" required>
+                </div>
+                <div id="fileName" class="file-name" style="display:none;"></div>
+                <button type="submit" class="btn" id="submitBtn" disabled>Анализировать</button>
+            </form>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <h3>&#128200; Статистика</h3>
+                <p>Описательная статистика, типы данных, пропуски</p>
+            </div>
+            <div class="feature">
+                <h3>&#128202; Графики</h3>
+                <p>Интерактивные визуализации: гистограммы, корреляции, выбросы</p>
+            </div>
+            <div class="feature">
+                <h3>&#129302; AI-инсайты</h3>
+                <p>Анализ от Groq: находки, аномалии, рекомендации</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="loader" class="loader" style="display:none;">
+        <div class="spinner"></div>
+        <p>Анализируем данные...</p>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const dropZone = document.getElementById('dropZone');
+        const fileName = document.getElementById('fileName');
+        const submitBtn = document.getElementById('submitBtn');
+        const form = document.getElementById('uploadForm');
+        const loader = document.getElementById('loader');
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) {
+                fileName.textContent = fileInput.files[0].name;
+                fileName.style.display = 'block';
+                submitBtn.disabled = false;
+            }
+        });
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            fileInput.files = e.dataTransfer.files;
+            fileInput.dispatchEvent(new Event('change'));
+        });
+
+        form.addEventListener('submit', () => {
+            loader.style.display = 'flex';
+            submitBtn.disabled = true;
+        });
+    </script>
+</body>
+</html>

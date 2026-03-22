@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Результаты анализа — {{ filename }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container wide">
+        <header>
+            <a href="/" class="back-link">&larr; Новый анализ</a>
+            <h1>Результаты анализа</h1>
+            <p class="subtitle">Файл: <strong>{{ filename }}</strong></p>
+        </header>
+
+        <section class="card">
+            <h2>Обзор датасета</h2>
+            <div class="metrics-grid">
+                <div class="metric">
+                    <span class="metric-value">{{ stats.shape.rows | default(0) }}</span>
+                    <span class="metric-label">Строк</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-value">{{ stats.shape.columns | default(0) }}</span>
+                    <span class="metric-label">Столбцов</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-value">{{ stats.total_missing | default(0) }}</span>
+                    <span class="metric-label">Пропусков</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-value">{{ stats.numeric_stats | length }}</span>
+                    <span class="metric-label">Числовых</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-value">{{ stats.categorical_stats | length }}</span>
+                    <span class="metric-label">Категориальных</span>
+                </div>
+            </div>
+            {% if sample_note %}
+            <p class="note">{{ sample_note }}</p>
+            {% endif %}
+        </section>
+
+        <section class="card">
+            <h2>AI-анализ</h2>
+            {% if llm_error %}
+            <div class="alert alert-error">{{ llm_error }}</div>
+            {% elif insights %}
+                {% if insights.summary %}
+                <div class="insight-block">
+                    <h3>Описание</h3>
+                    <p>{{ insights.summary }}</p>
+                </div>
+                {% endif %}
+
+                {% if insights.key_metrics %}
+                <div class="insight-block">
+                    <h3>Ключевые метрики</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>Метрика</th><th>Значение</th><th>Интерпретация</th></tr>
+                        </thead>
+                        <tbody>
+                        {% for m in insights.key_metrics %}
+                            <tr>
+                                <td>{{ m.metric }}</td>
+                                <td><strong>{{ m.value }}</strong></td>
+                                <td>{{ m.interpretation }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+
+                {% if insights.findings %}
+                <div class="insight-block">
+                    <h3>Находки</h3>
+                    <ul>
+                    {% for f in insights.findings %}
+                        <li>{{ f }}</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if insights.anomalies %}
+                <div class="insight-block">
+                    <h3>Аномалии</h3>
+                    <ul>
+                    {% for a in insights.anomalies %}
+                        <li>{{ a }}</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if insights.recommendations %}
+                <div class="insight-block">
+                    <h3>Рекомендации</h3>
+                    <ul>
+                    {% for r in insights.recommendations %}
+                        <li>{{ r }}</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            {% endif %}
+        </section>
+
+        {% if stats.numeric_stats %}
+        <section class="card">
+            <h2>Описательная статистика</h2>
+            <div class="table-scroll">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Столбец</th><th>Среднее</th><th>Медиана</th>
+                            <th>Ст. откл.</th><th>Мин</th><th>Макс</th>
+                            <th>Q25</th><th>Q75</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for col, s in stats.numeric_stats.items() %}
+                        <tr>
+                            <td><strong>{{ col }}</strong></td>
+                            <td>{{ s.mean }}</td><td>{{ s.median }}</td>
+                            <td>{{ s.std }}</td><td>{{ s.min }}</td><td>{{ s.max }}</td>
+                            <td>{{ s.q25 }}</td><td>{{ s.q75 }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        {% endif %}
+
+        {% if stats.missing_values %}
+        <section class="card">
+            <h2>Пропущенные значения</h2>
+            <div class="table-scroll">
+                <table class="data-table">
+                    <thead><tr><th>Столбец</th><th>Пропусков</th></tr></thead>
+                    <tbody>
+                    {% for col, count in stats.missing_values.items() %}
+                        <tr><td>{{ col }}</td><td>{{ count }}</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        {% endif %}
+
+        {% if stats.top_correlations %}
+        <section class="card">
+            <h2>Топ-10 корреляций</h2>
+            <table class="data-table">
+                <thead><tr><th>Столбец 1</th><th>Столбец 2</th><th>Корреляция</th></tr></thead>
+                <tbody>
+                {% for pair in stats.top_correlations %}
+                    <tr>
+                        <td>{{ pair.col1 }}</td>
+                        <td>{{ pair.col2 }}</td>
+                        <td><strong>{{ pair.correlation }}</strong></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        {% endif %}
+
+        {% if charts %}
+        <section class="card">
+            <h2>Визуализации</h2>
+            <div class="charts-grid">
+            {% for chart in charts %}
+                <div class="chart-item">
+                    {{ chart.html | safe }}
+                </div>
+            {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+    </div>
+</body>
+</html>
