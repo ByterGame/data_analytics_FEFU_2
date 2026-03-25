@@ -18,7 +18,8 @@ def main():
     df = pd.read_csv(INPUT_FILE)
     print(f"Загружено {len(df)} строк, {len(df.columns)} столбцов.")
 
-    prompt = PROMPT
+    stats = df.describe(include="all").to_string()
+    prompt = PROMPT + "Статистика датасета:\n" + stats
     print(f"Отправка запроса в Groq ({MODEL_NAME})...")
     client = LLMClient(api_key=GROQ_API_KEY, model_name=MODEL_NAME)
     result = client.analyze(prompt)
