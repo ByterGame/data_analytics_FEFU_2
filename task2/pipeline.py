@@ -2,6 +2,7 @@ import json
 import sys
 
 import pandas as pd
+import random
 
 from config import GROQ_API_KEY, INPUT_FILE, MODEL_NAME, OUTPUT_JSON, PROMPT
 from llm_client import LLMClient
@@ -18,11 +19,21 @@ def main():
     df = pd.read_csv(INPUT_FILE)
     print(f"Загружено {len(df)} строк, {len(df.columns)} столбцов.")
 
-    stats = df.describe(include="all").to_string()
-    prompt = PROMPT + "Статистика датасета:\n" + stats
-    print(f"Отправка запроса в Groq ({MODEL_NAME})...")
     client = LLMClient(api_key=GROQ_API_KEY, model_name=MODEL_NAME)
-    result = client.analyze(prompt)
+    result = dict()
+
+    temp = random.randint(0, 100)
+    for i in range(temp * 100, (temp + 1) * 100): 
+        # делаю для случайной сотни комментов так как для 150_000 долго, 
+        # там скорее всего в какой-то момент лимиты на запросы включаются и они дольше проходят, 
+        # типа token-buckets что-то наверно. Не погружался
+        code, comment = df.iloc[i, 0], df.iloc[i, 1]
+
+        prompt = PROMPT + comment
+        result[code] = client.analyze(prompt)
+
+        if (i + 1) % 10 == 0:
+            print(f"Итерация № {i - (temp * 100) + 1}")
 
     with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
