@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Data Analytics</title>
+    <title>AI Data Analytics Agent</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>AI Data Analytics</h1>
-            <p class="subtitle">Загрузите CSV или Excel файл для автоматического анализа с помощью ИИ</p>
+            <h1>AI Data Analytics Agent</h1>
+            <p class="subtitle">Загрузи CSV/Excel — LLM-агент сам напишет код, посчитает статистики и построит графики.</p>
         </header>
 
         {% if error %}
@@ -24,33 +24,53 @@
                 <div class="upload-area" id="dropZone">
                     <div class="upload-icon">&#128202;</div>
                     <p>Перетащите файл сюда или нажмите для выбора</p>
-                    <p class="upload-hint">Поддерживаемые форматы: CSV, XLSX (до 10 MB)</p>
+                    <p class="upload-hint">Поддерживаемые форматы: CSV, XLSX (до 32 MB)</p>
                     <input type="file" name="file" id="fileInput" accept=".csv,.xlsx,.xls" required>
                 </div>
                 <div id="fileName" class="file-name" style="display:none;"></div>
-                <button type="submit" class="btn" id="submitBtn" disabled>Анализировать</button>
+
+                <div class="instruction-block">
+                    <div class="instruction-header">
+                        <label for="instructionInput" class="instruction-label">Инструкция агенту</label>
+                        <span class="instruction-optional">необязательно</span>
+                    </div>
+                    <span class="instruction-hint">
+                        Опиши, на чём сфокусироваться. Если оставить пусто — агент сделает общий разведочный анализ.
+                    </span>
+                    <textarea
+                        id="instructionInput"
+                        name="instruction"
+                        maxlength="1000"
+                        rows="3"
+                        placeholder="Например: сравни группы по диагнозу диабета и проверь корреляции с возрастом и BMI"></textarea>
+                    <div class="char-counter">
+                        <span id="charCount">0</span> / 1000
+                    </div>
+                </div>
+
+                <button type="submit" class="btn" id="submitBtn" disabled>Запустить агента</button>
             </form>
         </div>
 
         <div class="features">
             <div class="feature">
-                <h3>&#128200; Статистика</h3>
-                <p>Описательная статистика, типы данных, пропуски</p>
+                <h3>&#129302; Один агентский цикл</h3>
+                <p>LLM сама вызывает Python-интерпретатор и решает, что считать</p>
             </div>
             <div class="feature">
-                <h3>&#128202; Графики</h3>
-                <p>Интерактивные визуализации: гистограммы, корреляции, выбросы</p>
+                <h3>&#128200; Графики</h3>
+                <p>Matplotlib-визуализации, построенные кодом агента</p>
             </div>
             <div class="feature">
-                <h3>&#129302; AI-инсайты</h3>
-                <p>Анализ от Groq: находки, аномалии, рекомендации</p>
+                <h3>&#128274; Защита</h3>
+                <p>Sandbox с whitelisted builtins и фильтр prompt-injection</p>
             </div>
         </div>
     </div>
 
     <div id="loader" class="loader" style="display:none;">
         <div class="spinner"></div>
-        <p>Анализируем данные...</p>
+        <p>Агент анализирует данные...</p>
     </div>
 
     <script>
@@ -60,6 +80,8 @@
         const submitBtn = document.getElementById('submitBtn');
         const form = document.getElementById('uploadForm');
         const loader = document.getElementById('loader');
+        const instructionInput = document.getElementById('instructionInput');
+        const charCount = document.getElementById('charCount');
 
         fileInput.addEventListener('change', () => {
             if (fileInput.files.length) {
@@ -85,6 +107,10 @@
             dropZone.classList.remove('dragover');
             fileInput.files = e.dataTransfer.files;
             fileInput.dispatchEvent(new Event('change'));
+        });
+
+        instructionInput.addEventListener('input', () => {
+            charCount.textContent = instructionInput.value.length;
         });
 
         form.addEventListener('submit', () => {

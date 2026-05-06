@@ -169,6 +169,232 @@ h3 {
     border: 1px solid #fed7d7;
 }
 
+.alert-warning {
+    background: #fffaf0;
+    color: #b7791f;
+    border: 1px solid #fbd38d;
+}
+
+.instruction-block {
+    margin-top: 1.25rem;
+    padding: 1.1rem 1.2rem 1rem;
+    background: #f7f8fc;
+    border: 1px solid #e8ecf1;
+    border-radius: 10px;
+}
+
+.instruction-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.55rem;
+}
+
+.instruction-label {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #1a1a2e;
+    font-weight: 600;
+}
+
+.instruction-optional {
+    font-size: 0.78rem;
+    color: #a0aec0;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.instruction-hint {
+    display: block;
+    margin-bottom: 0.7rem;
+    font-size: 0.85rem;
+    color: #718096;
+    line-height: 1.5;
+}
+
+textarea {
+    width: 100%;
+    padding: 0.8rem 0.95rem;
+    font-family: inherit;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    border: 1px solid #d8dee8;
+    border-radius: 8px;
+    resize: vertical;
+    background: #fff;
+    color: #1a1a2e;
+    min-height: 88px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    box-sizing: border-box;
+}
+
+textarea::placeholder {
+    color: #b8c0cc;
+}
+
+textarea:focus {
+    outline: none;
+    border-color: #636EFA;
+    box-shadow: 0 0 0 3px rgba(99, 110, 250, 0.15);
+}
+
+.char-counter {
+    text-align: right;
+    font-size: 0.75rem;
+    color: #a0aec0;
+    margin-top: 0.35rem;
+}
+
+.user-instruction {
+    background: #f7f8fc;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    border-left: 3px solid #636EFA;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: #2d3748;
+}
+
+.agent-report {
+    color: #1a1a2e;
+    font-size: 0.98rem;
+    line-height: 1.65;
+}
+
+.report-section {
+    margin-bottom: 1.4rem;
+}
+
+.report-section:last-child {
+    margin-bottom: 0;
+}
+
+.report-section h3 {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #636EFA;
+    margin-bottom: 0.55rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid #e8ecf1;
+}
+
+.report-section ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.report-section li {
+    position: relative;
+    padding-left: 1.1rem;
+    margin-bottom: 0.45rem;
+    color: #2d3748;
+    overflow-wrap: anywhere;
+}
+
+.report-section li::before {
+    content: "•";
+    position: absolute;
+    left: 0.15rem;
+    color: #636EFA;
+    font-weight: 700;
+}
+
+.agent-report-raw {
+    background: #fafbff;
+    padding: 1.1rem 1.3rem;
+    border-radius: 8px;
+    border: 1px solid #e8ecf1;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: #1a1a2e;
+    line-height: 1.6;
+}
+
+.agent-chart {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 6px;
+    border: 1px solid #e8ecf1;
+    background: #fff;
+}
+
+.trace-details {
+    margin-top: 0.5rem;
+}
+
+.trace-details summary {
+    cursor: pointer;
+    color: #636EFA;
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+}
+
+.trace-step {
+    margin-bottom: 1rem;
+    padding: 0.6rem 0.8rem;
+    background: #f7f8fc;
+    border-radius: 6px;
+    border-left: 3px solid #cbd5e0;
+}
+
+.trace-step-warning {
+    background: #fffaf0;
+    border-left-color: #d69e2e;
+}
+
+.trace-header {
+    font-size: 0.8rem;
+    color: #4a5568;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.trace-code {
+    background: #1a1a2e;
+    color: #e8ecf1;
+    padding: 0.6rem 0.8rem;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.78rem;
+    overflow-x: auto;
+    white-space: pre;
+    max-width: 100%;
+    margin-bottom: 0.4rem;
+}
+
+.trace-output-label {
+    font-size: 0.75rem;
+    color: #718096;
+    margin-bottom: 0.2rem;
+}
+
+.trace-output {
+    background: #fff;
+    padding: 0.5rem 0.7rem;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.78rem;
+    color: #2d3748;
+    overflow-x: auto;
+    white-space: pre;
+    max-width: 100%;
+    border: 1px solid #e8ecf1;
+}
+
 .card {
     background: #fff;
     border-radius: 12px;
