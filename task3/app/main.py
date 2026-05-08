@@ -14,10 +14,12 @@ from .config import GROQ_API_KEY, MAX_FILE_SIZE_MB
 from .injection import sanitize_instruction
 
 _SECTION_HEADER = re.compile(r"^[А-ЯЁA-Z][А-ЯЁA-Z0-9 \-—:]{2,}$")
+_BULLET_PREFIXES = ("-", "*", "•")
+_SUPPORTED_EXTENSIONS = (".csv", ".xlsx", ".xls")
 
 
 def parse_agent_report(text: str) -> list[dict]:
-    """Парсит отчёт агента в список секций {title, items}."""
+    """Парсит текстовый отчёт агента в список секций {title, bullets}."""
     if not text:
         return []
     sections: list[dict] = []
@@ -26,23 +28,23 @@ def parse_agent_report(text: str) -> list[dict]:
         stripped = raw.strip()
         if not stripped:
             continue
-        if _SECTION_HEADER.match(stripped) and not stripped.startswith(("-", "*", "•")):
+        if _SECTION_HEADER.match(stripped):
             if current and (current["bullets"] or current["title"]):
                 sections.append(current)
             current = {"title": stripped.rstrip(":"), "bullets": []}
             continue
         if current is None:
             current = {"title": "", "bullets": []}
-        if stripped.startswith(("-", "*", "•")):
+        if stripped.startswith(_BULLET_PREFIXES):
             current["bullets"].append(stripped.lstrip("-*• ").strip())
+        elif current["bullets"]:
+            current["bullets"][-1] += " " + stripped
         else:
-            if current["bullets"]:
-                current["bullets"][-1] += " " + stripped
-            else:
-                current["bullets"].append(stripped)
+            current["bullets"].append(stripped)
     if current and (current["bullets"] or current["title"]):
         sections.append(current)
     return sections
+
 
 logger = logging.getLogger("task3")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -54,8 +56,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 
 def read_uploaded_file(contents: bytes, filename: str) -> pd.DataFrame:
-    """Читает загруженный файл в DataFrame."""
-    if filename.endswith(".xlsx") or filename.endswith(".xls"):
+    if filename.endswith((".xlsx", ".xls")):
         return pd.read_excel(io.BytesIO(contents))
 
     for encoding in ("utf-8", "cp1251", "latin-1"):
@@ -64,7 +65,11 @@ def read_uploaded_file(contents: bytes, filename: str) -> pd.DataFrame:
         except (UnicodeDecodeError, pd.errors.ParserError):
             continue
 
-    raise ValueError("Не удалось прочитать файл. Поддерживаемые форматы: CSV, XLSX.")
+    raise ValueError("Не удалось определить кодировку CSV-файла.")
+
+
+def _index_error(request: Request, message: str) -> HTMLResponse:
+    return templates.TemplateResponse(request, "index.html", {"error": message})
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -78,47 +83,26 @@ async def upload_file(
     file: UploadFile = File(...),
     instruction: str = Form(""),
 ):
+    if not GROQ_API_KEY:
+        return _index_error(request, "API-ключ Groq не настроен. Добавьте GROQ_API_KEY в .env файл.")
+
+    if not file.filename.endswith(_SUPPORTED_EXTENSIONS):
+        return _index_error(request, "Поддерживаемые форматы: CSV, XLSX.")
+
     contents = await file.read()
     size_mb = len(contents) / (1024 * 1024)
     if size_mb > MAX_FILE_SIZE_MB:
-        return templates.TemplateResponse(request, "index.html", {
-            "error": f"Файл слишком большой ({size_mb:.1f} MB). Максимум: {MAX_FILE_SIZE_MB} MB.",
-        })
-
-    if not (file.filename.endswith(".csv")
-            or file.filename.endswith(".xlsx")
-            or file.filename.endswith(".xls")):
-        return templates.TemplateResponse(request, "index.html", {
-            "error": "Поддерживаемые форматы: CSV, XLSX.",
-        })
+        return _index_error(request, f"Файл слишком большой ({size_mb:.1f} MB). Максимум: {MAX_FILE_SIZE_MB} MB.")
 
     try:
         df = read_uploaded_file(contents, file.filename)
     except Exception as e:
-        return templates.TemplateResponse(request, "index.html", {
-            "error": f"Ошибка чтения файла: {e}",
-        })
+        return _index_error(request, f"Ошибка чтения файла: {e}")
 
     if len(df) == 0:
-        return templates.TemplateResponse(request, "index.html", {
-            "error": "Файл пуст.",
-        })
+        return _index_error(request, "Файл пуст.")
 
     cleaned_instruction, suspicious = sanitize_instruction(instruction)
-
-    if not GROQ_API_KEY:
-        return templates.TemplateResponse(request, "results.html", {
-            "filename": file.filename,
-            "rows": len(df),
-            "cols": df.shape[1],
-            "instruction": cleaned_instruction,
-            "suspicious": suspicious,
-            "report": None,
-            "charts": [],
-            "trace": [],
-            "llm_error": "API-ключ Groq не настроен. Добавьте GROQ_API_KEY в .env файл.",
-            "created_at": datetime.now(),
-        })
 
     report_text: str | None = None
     charts: list[str] = []

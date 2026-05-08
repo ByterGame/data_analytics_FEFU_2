@@ -13,7 +13,7 @@ import pandas as pd
 
 from .config import EXEC_TIMEOUT_SEC, MAX_CHARTS, MAX_TOOL_OUTPUT_CHARS
 
-_BLOCKED_PATTERNS = [
+_BLOCKED_PATTERNS = [re.compile(p) for p in [
     r"\bimport\s+os\b",
     r"\bimport\s+sys\b",
     r"\bimport\s+subprocess\b",
@@ -55,9 +55,7 @@ _BLOCKED_PATTERNS = [
     r"\.to_json\s*\(",
     r"\.to_pickle\s*\(",
     r"\.read_pickle\s*\(",
-]
-
-_BLOCKED_COMPILED = [re.compile(p) for p in _BLOCKED_PATTERNS]
+]]
 
 _SAFE_BUILTINS = {
     "abs": abs, "all": all, "any": any, "bool": bool, "dict": dict,
@@ -80,7 +78,7 @@ _SAFE_BUILTINS = {
 
 def is_code_safe(code: str) -> tuple[bool, str]:
     """Проверяет код регексами на запрещённые конструкции."""
-    for pattern in _BLOCKED_COMPILED:
+    for pattern in _BLOCKED_PATTERNS:
         if pattern.search(code):
             return False, f"запрещённый паттерн: {pattern.pattern}"
     return True, ""
